@@ -19,9 +19,21 @@
     {# ---- Branch Header ---- #}
     <header class="mb-8">
         {% if page.image %}
-        <div class="rounded-xl overflow-hidden mb-6 max-h-72">
-            {% image page.image fill-1200x400 class="w-full object-cover" %}
-        </div>
+        <figure class="mb-6">
+            <div class="rounded-xl overflow-hidden max-h-72">
+                {% image page.image fill-1200x400 class="w-full object-cover" %}
+            </div>
+            {% if page.image_credit %}
+            <figcaption class="mt-2 text-xs text-right text-gray-500">
+                Photo:
+                {% if page.image_credit_url %}
+                <a href="{{ page.image_credit_url }}" target="_blank" rel="noopener noreferrer" class="underline hover:text-rpi-red">{{ page.image_credit }}</a>
+                {% else %}
+                {{ page.image_credit }}
+                {% endif %}
+            </figcaption>
+            {% endif %}
+        </figure>
         {% endif %}
         <h1 class="text-4xl font-bold text-gray-900">{{ page.title }}</h1>
         {% if page.tagline %}

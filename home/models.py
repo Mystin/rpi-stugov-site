@@ -67,6 +67,17 @@ class HomePage(Page):
         on_delete=models.SET_NULL,
         related_name="+",
     )
+    hero_image_credit = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name="Hero image credit",
+        help_text="Name the photographer, organization, or other image source.",
+    )
+    hero_image_credit_url = models.URLField(
+        blank=True,
+        verbose_name="Hero image source URL",
+        help_text="Optional link to the original image or source.",
+    )
 
     # -- Body content --
     # StreamField replaces the old RichTextField. Each block type in the
@@ -97,6 +108,8 @@ class HomePage(Page):
                 FieldPanel("hero_title"),
                 FieldPanel("hero_subtitle"),
                 FieldPanel("hero_image"),
+                FieldPanel("hero_image_credit"),
+                FieldPanel("hero_image_credit_url"),
             ],
             heading="Hero Section",
         ),
