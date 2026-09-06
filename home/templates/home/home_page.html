@@ -49,10 +49,22 @@
                 {# Right Content: Image with enhanced emphasis #}
                 <div class="w-full lg:w-[55%] relative group">
                     {% if page.hero_image %}
-                    <div class="relative z-10 rounded-xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-4 border-white/10 transform transition-all duration-700 ease-out">
-                        {# High-impact rectangular ratio #}
-                        {% image page.hero_image fill-1200x750 class="w-full h-auto object-cover" %}
-                    </div>
+                    <figure class="relative z-10">
+                        <div class="rounded-xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-4 border-white/10 transform transition-all duration-700 ease-out">
+                            {# High-impact rectangular ratio #}
+                            {% image page.hero_image fill-1200x750 class="w-full h-auto object-cover" %}
+                        </div>
+                        {% if page.hero_image_credit %}
+                        <figcaption class="mt-2 text-xs text-right text-gray-300">
+                            Photo:
+                            {% if page.hero_image_credit_url %}
+                            <a href="{{ page.hero_image_credit_url }}" target="_blank" rel="noopener noreferrer" class="underline hover:text-white">{{ page.hero_image_credit }}</a>
+                            {% else %}
+                            {{ page.hero_image_credit }}
+                            {% endif %}
+                        </figcaption>
+                        {% endif %}
+                    </figure>
                     {# Enhanced decorative background glow #}
                     <div class="absolute -inset-10 bg-rpi-red/30 blur-[100px] rounded-full opacity-40 group-hover:opacity-60 transition-opacity duration-1000 animate-pulse"></div>
                     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-blue-500/10 blur-[120px] rounded-full opacity-30"></div>
@@ -81,8 +93,8 @@
         <h2 class="text-2xl font-bold text-gray-900 mb-6">Your Student Government</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
             {% for branch in branch_pages %}
-            <a href="{% pageurl branch %}"
-               class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow flex flex-col">
+            <article class="relative bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow flex flex-col">
+                <a href="{% pageurl branch %}" class="absolute inset-0 z-0" aria-label="View {{ branch.title }}"></a>
                 {# Image on top, text below #}
                 {% if branch.image %}
                 <div class="h-36 flex-shrink-0">
@@ -94,8 +106,18 @@
                     {% if branch.tagline %}
                         <p class="text-sm text-gray-500 leading-snug">{{ branch.tagline }}</p>
                     {% endif %}
+                    {% if branch.image and branch.image_credit %}
+                    <p class="relative z-10 mt-3 text-xs text-gray-500">
+                        Photo:
+                        {% if branch.image_credit_url %}
+                        <a href="{{ branch.image_credit_url }}" target="_blank" rel="noopener noreferrer" class="underline hover:text-rpi-red">{{ branch.image_credit }}</a>
+                        {% else %}
+                        {{ branch.image_credit }}
+                        {% endif %}
+                    </p>
+                    {% endif %}
                 </div>
-            </a>
+            </article>
             {% endfor %}
         </div>
     </section>

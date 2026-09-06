@@ -382,6 +382,17 @@ class BranchPage(Page):
         related_name="+",
         help_text="Photo representing this branch (e.g. a group photo or meeting).",
     )
+    image_credit = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name="Image credit",
+        help_text="Name the photographer, organization, or other image source.",
+    )
+    image_credit_url = models.URLField(
+        blank=True,
+        verbose_name="Image source URL",
+        help_text="Optional link to the original image or source.",
+    )
     body = StreamField(
         STANDARD_STREAMFIELD_BLOCKS,
         blank=True,
@@ -399,6 +410,8 @@ class BranchPage(Page):
         FieldPanel("branch_type"),
         FieldPanel("tagline"),
         FieldPanel("image"),
+        FieldPanel("image_credit"),
+        FieldPanel("image_credit_url"),
         FieldPanel("body"),
         MultiFieldPanel(
             [

@@ -1,5 +1,8 @@
+from branches.models import BranchPage
 from home.models import HomePage
 
+from wagtail.images import get_image_model
+from wagtail.images.tests.utils import get_test_image_file
 from wagtail.models import Page, Site
 from wagtail.test.utils import WagtailPageTestCase
 
@@ -40,3 +43,39 @@ class HomeTests(WagtailPageTestCase):
     def test_homepage_template_used(self):
         response = self.client.get(self.homepage.url)
         self.assertTemplateUsed(response, "home/home_page.html")
+
+    def test_image_credits_are_rendered_with_source_links(self):
+        image_model = get_image_model()
+        hero_image = image_model.objects.create(
+            title="Hero image",
+            file=get_test_image_file(filename="hero.png"),
+        )
+        branch_image = image_model.objects.create(
+            title="Branch image",
+            file=get_test_image_file(filename="branch.png"),
+        )
+
+        self.homepage.hero_image = hero_image
+        self.homepage.hero_image_credit = "RPI Archives"
+        self.homepage.hero_image_credit_url = "https://example.com/hero"
+        self.homepage.save()
+
+        branch = BranchPage(
+            title="Student Senate",
+            branch_type="senate",
+            image=branch_image,
+            image_credit="Jane Photographer",
+            image_credit_url="https://example.com/branch",
+        )
+        self.homepage.add_child(instance=branch)
+
+        response = self.client.get(self.homepage.url)
+
+        self.assertContains(response, "RPI Archives")
+        self.assertContains(response, "https://example.com/hero")
+        self.assertContains(response, "Jane Photographer")
+        self.assertContains(response, "https://example.com/branch")
+
+        response = self.client.get(branch.url)
+        self.assertContains(response, "Jane Photographer")
+        self.assertContains(response, "https://example.com/branch")
