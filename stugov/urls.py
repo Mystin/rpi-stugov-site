@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.urls import include, path
 from django.contrib import admin
+from django.contrib.staticfiles.storage import staticfiles_storage
+from django.shortcuts import redirect
 
 from wagtail.admin import urls as wagtailadmin_urls
 from wagtail import urls as wagtail_urls
@@ -8,7 +10,13 @@ from wagtail.documents import urls as wagtaildocs_urls
 
 from search import views as search_views
 
+
+def favicon(request):
+    return redirect(staticfiles_storage.url("images/favicon.ico"))
+
+
 urlpatterns = [
+    path("favicon.ico", favicon, name="favicon"),
     path("django-admin/", admin.site.urls),
 ]
 
