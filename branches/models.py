@@ -664,7 +664,7 @@ class CommitteePage(Page, MembershipDisplay):
         placements = self.member_placements.all()
         
         result.append({
-            'tier_id': len(result),
+            'tier_id': max(1, len(result)),
             'tier_name': "Members",
             'placements': ({
                     'member': placement.member,
