@@ -52,7 +52,7 @@
     {# ---- Committee Chair ---- #}
     {% with hierarchy=page.get_tiered_placements %}
     {% if hierarchy %}
-        {% with tier=hierarchy[0] %}
+        {% with tier=hierarchy.0 %}
         {% if tier %}
         <section class="mb-14">
             {# Tier heading — centered, with a short accent underline #}
