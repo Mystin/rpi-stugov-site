@@ -45,6 +45,7 @@ in the deployment system's secret store.
 |----------|----------|---------|
 | `DJANGO_SETTINGS_MODULE` | yes | `stugov.settings.production` |
 | `DATA_DIR` | yes | `/app/data/` |
+| `SQLITE_DB` | no | `data/db.sqlite3` |
 | `DJANGO_SECRET_KEY` | yes | (long random string) |
 | `DJANGO_ALLOWED_HOSTS` | yes | `sg.rpi.edu` |
 | `DJANGO_CSRF_TRUSTED_ORIGINS` | yes | `https://sg.rpi.edu` |

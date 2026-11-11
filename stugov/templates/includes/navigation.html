@@ -43,11 +43,14 @@
                     {# Dropdown menu (appears on hover via group-hover) #}
                     {# "group" on the parent + "group-hover:block" on the child #}
                     {# is a pure-CSS hover dropdown using Tailwind's group variant #}
-                    {% if item.children %}
                     <div class="absolute left-0 mt-0 w-56 bg-white rounded-md shadow-lg
                                 opacity-0 invisible group-hover:opacity-100 group-hover:visible
                                 transition-all duration-200 z-50">
                         <div class="py-1">
+                            <a href="{% pageurl item.page %}"
+                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-rpi-red">
+                                {{ item.page.title }}
+                            </a>
                             {% for child in item.children %}
                             <a href="{% pageurl child %}"
                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-rpi-red">
@@ -56,7 +59,6 @@
                             {% endfor %}
                         </div>
                     </div>
-                    {% endif %}
                 </div>
                 {% endfor %}
             </div>

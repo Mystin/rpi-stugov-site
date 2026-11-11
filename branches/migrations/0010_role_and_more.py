@@ -20,8 +20,8 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(help_text="Displayed role text, e.g. 'Class of 2027 Representative'.", max_length=255)),
                 ('branch', models.CharField(choices=[('senate', 'Student Senate'), ('eboard', 'Executive Board'), ('uc', 'Undergraduate Council'), ('gc', 'Graduate Council'), ('jboard', 'Judicial Board')], help_text='Which branch this role belongs to.', max_length=20)),
-                ('tier', models.CharField(choices=[('presiding', 'Presiding Officer'), ('officers', 'Officers'), ('chairs', 'Committee Chairs'), ('members', 'Members'), ('advisors', 'Club Financial Advisors')], default='members', help_text="Display rank on the member listing page. 'Club Financial Advisors' sort to the bottom.", max_length=20)),
-                ('constituency_class', models.CharField(choices=branches.models.constituency_class_choices, default='none', help_text='Graduating class this role represents, if any.', max_length=20)),
+                ('tier', models.CharField(choices=[('presiding', 'Presiding Officer'), ('officers', 'Officers'), ('chairs', 'Committee Chairs'), ('members', 'Members'), ('advisors', 'Club Financial Advisors')], default='members', help_text="Display rank on the member listing page.", max_length=20)),
+                ('constituency_class', models.CharField(choices=None, default='none', help_text='Graduating class this role represents, if any.', max_length=20)),
                 ('constituency_fsl', models.CharField(blank=True, choices=[('associated', 'FSL-Associated'), ('independent', 'Independent'), ('none', 'No FSL Association')], help_text='FSL group this role represents, if any.', max_length=20, verbose_name='Constituency FSL association')),
             ],
             options={

@@ -32,15 +32,50 @@
     {% endif %}
 
     {# ---- Council Members ---- #}
-    {% if page.council_members.all %}
-    <h2 class="text-2xl font-bold text-gray-900 mb-4">Council Members</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {% for placement in page.council_members.all %}
-            {% if placement.member.is_active %}
-                {% include "includes/member_card.html" with placement=placement %}
+    {% with hierarchy=page.get_tiered_placements %}
+    {% if hierarchy %}
+        {% for tier in hierarchy %}
+        <section class="mb-14">
+            {# Tier heading — centered, with a short accent underline #}
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 inline-block">{{ tier.tier_name }}</h2>
+                <div class="w-16 h-0.5 bg-rpi-red mx-auto mt-2"></div>
+            </div>
+
+            {% if tier.tier_id == 0 %}
+                {# Presiding officer — featured card, centered #}
+                <div class="flex flex-wrap justify-center gap-8 max-w-3xl mx-auto">
+                    {% for placement in tier.placements %}
+                        <div class="w-full sm:w-[420px]">
+                            {% include "includes/member_card.html" with member=placement.member roles=placement.roles featured=True %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% elif tier.tier_id == page.vacancies_tier_id %}
+                {# Vacancies #}
+                <div class="flex flex-wrap justify-center gap-x-6 gap-y-10 sm:gap-x-8">
+                    {% for vacancy in tier.vacancies %}
+                        <div class="w-48 sm:w-54 md:w-60 grid">
+                            {% include "includes/vacancy_card.html" with positions=vacancy.positions role=vacancy.role %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                {# Compact grid — flex-wrap keeps partial rows centered.   #}
+                {# Fixed card widths let rows wrap naturally at any count. #}
+                <div class="flex flex-wrap justify-center gap-x-6 gap-y-10 sm:gap-x-8">
+                    {% for placement in tier.placements %}
+                        <div class="w-36 sm:w-40 md:w-44">
+                            {% include "includes/member_card.html" with member=placement.member roles=placement.roles featured=False %}
+                        </div>
+                    {% endfor %}
+                </div>
             {% endif %}
+        </section>
         {% endfor %}
-    </div>
+    {% else %}
+        <p class="text-gray-500 text-center">No members listed yet.</p>
     {% endif %}
+    {% endwith %}
 </div>
 {% endblock %}

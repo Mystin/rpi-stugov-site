@@ -1,25 +1,26 @@
 """
 Management command to create/update Role snippets from a CSV file.
 
-Roles are branch-specific and carry the constituency they represent, so they
-must exist before members can be assigned to them (see import_members).
+Roles are global and carry the constituency they represent. They must
+exist before assignments can be reference them (see import_assignments).
 
 Usage:
     python manage.py import_roles roles.csv
     python manage.py import_roles roles.csv --dry-run
+    python manage.py import_roles roles.csv --clear
 
 CSV format (header row required):
-    name,branch,tier,constituency_class,constituency_fsl
+    name,role_code,positions,constituency
 
   - name: displayed role text, e.g. "Class of 2027 Representative"
-  - branch: one of the BRANCH_CHOICES keys (senate, eboard, uc, gc, jboard)
-  - tier: one of the HIERARCHY_TIERS keys
-    (presiding, officers, chairs, members, advisors)
-  - constituency_class: a graduating year, "graduate", or "none" (optional;
-    defaults to "none"). Years must fall within the current selectable window.
-  - constituency_fsl: associated, independent, or none (optional; blank = unset)
+  - role_code: unique identifier for this role
+  - positions: number of positions this role can have
+    (leave empty for no vacancies to be displayed)
+  - constituency: a graduating year, "graduate", an FSL association
+    ("associated" or "independent"), or "none" (optional; defaults to "none").
+    Years must fall within the current selectable window.
 
-Roles are matched/upserted by (branch, name).
+Roles are matched/upserted by name.
 """
 
 import csv
@@ -28,18 +29,11 @@ from django.core.management.base import BaseCommand, CommandError
 
 from branches.models import (
     Role,
-    BRANCH_CHOICES,
-    FSL_CHOICES,
-    TIER_CHOICES,
-    constituency_class_choices,
+    constituency_choices,
 )
 
 
-VALID_BRANCHES = {code for code, _ in BRANCH_CHOICES}
-VALID_TIERS = {code for code, _ in TIER_CHOICES}
-VALID_FSL = {code for code, _ in FSL_CHOICES}
-
-REQUIRED_COLUMNS = {"name", "branch", "tier"}
+REQUIRED_COLUMNS = {"name", "role_code"}
 
 
 class Command(BaseCommand):
@@ -52,10 +46,17 @@ class Command(BaseCommand):
             action="store_true",
             help="Validate the CSV and report what would happen, without saving.",
         )
+        parser.add_argument(
+            "--clear",
+            action="store_true",
+            help="Remove all existing Roles before importing. "
+                 "Will cascade removal to all existing assignments and role configs.",
+        )
 
     def handle(self, *args, **options):
         csv_path = options["csv_file"]
         dry_run = options["dry_run"]
+        clear = options["clear"]
 
         try:
             with open(csv_path, newline="", encoding="utf-8-sig") as f:
@@ -72,61 +73,63 @@ class Command(BaseCommand):
                 f"CSV is missing required columns: {', '.join(sorted(missing))}"
             )
 
-        valid_classes = {code for code, _ in constituency_class_choices()}
+        if clear and not dry_run:
+            count = Role.objects.count()
+            Role.objects.all().delete()
+            self.stdout.write(
+                self.style.WARNING(f"Cleared {count} existing roles.")
+            )
+
+        valid_constituencies = {code for code, _ in constituency_choices()}
 
         stats = {"created": 0, "updated": 0, "errors": 0}
 
         for i, row in enumerate(rows, start=2):  # row 1 is the header
             row = {k: (v or "").strip() for k, v in row.items()}
             name = row.get("name", "")
-            branch = row.get("branch", "")
-            tier = row.get("tier", "")
-            constituency_class = row.get("constituency_class", "") or "none"
-            constituency_fsl = row.get("constituency_fsl", "")
+            role_code = row.get("role_code", "")
+            positions_str = row.get("positions", "")
+            constituency = row.get("constituency", "none")
 
             if not name:
                 self.stderr.write(self.style.ERROR(f"Row {i}: missing name, skipping."))
                 stats["errors"] += 1
                 continue
-            if branch not in VALID_BRANCHES:
-                self.stderr.write(self.style.ERROR(
-                    f"Row {i}: invalid branch '{branch}'. "
-                    f"Must be one of: {', '.join(sorted(VALID_BRANCHES))}"))
+            if not role_code:
+                self.stderr.write(self.style.ERROR(f"Row {i}: missing role code, skipping."))
                 stats["errors"] += 1
                 continue
-            if tier not in VALID_TIERS:
+            if constituency not in valid_constituencies:
                 self.stderr.write(self.style.ERROR(
-                    f"Row {i}: invalid tier '{tier}'. "
-                    f"Must be one of: {', '.join(sorted(VALID_TIERS))}"))
-                stats["errors"] += 1
-                continue
-            if constituency_class not in valid_classes:
-                self.stderr.write(self.style.ERROR(
-                    f"Row {i}: invalid constituency_class '{constituency_class}'. "
-                    f"Must be one of: {', '.join(sorted(valid_classes))}"))
-                stats["errors"] += 1
-                continue
-            if constituency_fsl and constituency_fsl not in VALID_FSL:
-                self.stderr.write(self.style.ERROR(
-                    f"Row {i}: invalid constituency_fsl '{constituency_fsl}'. "
-                    f"Must be one of: {', '.join(sorted(VALID_FSL))}"))
+                    f"Row {i}: invalid constituency '{constituency}'. "
+                    f"Must be one of: {', '.join(sorted(valid_constituencies))}"))
                 stats["errors"] += 1
                 continue
 
+            if not positions_str:
+                positions = 0
+            else:
+                try:
+                    positions = int(positions_str)
+                except ValueError:
+                    self.stderr.write(self.style.ERROR(f"Row {i}: positions '{positions_str}' not an integer, skipping."))
+                    stats["errors"] += 1
+                    continue
+
             if dry_run:
-                exists = Role.objects.filter(branch=branch, name=name).exists()
+                exists = Role.objects.filter(name=name).exists()
                 action = "update" if exists else "create"
-                self.stdout.write(f"Row {i}: would {action} role '{branch}: {name}' ({tier})")
+                self.stdout.write(f"Row {i}: would {action} role '{role_code} ({name})'")
                 stats["updated" if exists else "created"] += 1
                 continue
 
             _, created = Role.objects.update_or_create(
-                branch=branch,
-                name=name,
+                role_code=role_code,
                 defaults={
-                    "tier": tier,
-                    "constituency_class": constituency_class,
-                    "constituency_fsl": constituency_fsl,
+                    "name": name,
+                    "role_code": role_code,
+                    "positions": positions,
+                    "constituency": constituency,
                 },
             )
             stats["created" if created else "updated"] += 1
@@ -134,7 +137,7 @@ class Command(BaseCommand):
         prefix = "[DRY RUN] " if dry_run else ""
         self.stdout.write("")
         self.stdout.write(self.style.SUCCESS(f"{prefix}Role import complete:"))
-        self.stdout.write(f"  Roles created: {stats['created']}")
-        self.stdout.write(f"  Roles updated: {stats['updated']}")
+        self.stdout.write(f"  Roles created:   {stats['created']}")
+        self.stdout.write(f"  Roles updated:   {stats['updated']}")
         if stats["errors"]:
-            self.stdout.write(self.style.ERROR(f"  Errors:        {stats['errors']}"))
+            self.stdout.write(self.style.ERROR(f"  Errors:          {stats['errors']}"))

@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "blog",
     "home",
     "search",
+    "rep_finder",
     # Wagtail contrib modules — optional Wagtail features enabled as needed.
     # "forms" powers the complaint form builder. "settings" provides the
     # SiteSettings singleton. "routable_page" lets EventIndexPage serve a
@@ -133,7 +134,7 @@ AUTHENTICATION_BACKENDS = [
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": DATA_DIR / "db.sqlite3",
+        "NAME": os.environ.get("SQLITE_DB", DATA_DIR / "db.sqlite3"),
     }
 }
 

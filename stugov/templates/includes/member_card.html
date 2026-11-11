@@ -1,19 +1,18 @@
 {# ================================================================== #}
 {# MEMBER CARD — Reusable partial for displaying a member profile     #}
-{#                                                                     #}
+{#                                                                    #}
 {# Expected context variables:                                        #}
-{#   - placement: a BranchMemberPlacement, CommitteeMemberPlacement,  #}
-{#     or ClassCouncilMemberPlacement instance                        #}
-{#   - roles (optional): a list of role-name strings to display, one  #}
-{#     per line. Passed by the branch hierarchy view (the roles for   #}
-{#     this member in the current tier). When absent, the card falls  #}
-{#     back to the committee/class-council placement's own role field.#}
+{#   - member: a MemberProfile instance.                              #}
+{#   - roles (optional): a list of role title strings to display,     #}
+{#     one per line.                                                  #}
 {#   - featured (optional, default False): if True, render a larger   #}
 {#     horizontal card (used for presiding officers).                 #}
-{#                                                                     #}
+{#   - include_email (optional default False): if True, include       #}
+{#     the email of the representative below their name               #}
+{#                                                                    #}
 {# The non-featured variant is a minimal photo-above-name layout with #}
 {# no card chrome (no bg/shadow), matching the ASUC/RPI-Senate style. #}
-{# The featured variant keeps the full card with bio.                  #}
+{# The featured variant keeps the full card with bio.                 #}
 {# ================================================================== #}
 
 {% load wagtailimages_tags %}
@@ -23,9 +22,9 @@
 <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow
             flex flex-col sm:flex-row">
     {# Photo column #}
-    {% if placement.member.photo %}
+    {% if member.photo %}
     <div class="sm:w-44 sm:flex-shrink-0 aspect-square sm:aspect-auto overflow-hidden">
-        {% image placement.member.photo fill-400x400 class="w-full h-full object-cover" %}
+        {% image member.photo fill-400x400 class="w-full h-full object-cover" %}
     </div>
     {% else %}
     <div class="sm:w-44 sm:flex-shrink-0 aspect-square sm:aspect-auto bg-gray-200 flex items-center justify-center">
@@ -44,20 +43,21 @@
         {% endfor %}
 
         <h3 class="text-xl font-bold text-gray-900">
-            {{ placement.member.first_name }} {{ placement.member.last_name }}
+            {{ member.first_name }} {{ member.last_name }}
         </h3>
 
-        {% if placement.member.class_year or placement.member.major %}
+        {% if member.class_year or member.major %}
         <p class="text-sm text-gray-500 mt-1">
-            {% if placement.member.class_year %}Class of {{ placement.member.class_year }}{% endif %}
-            {% if placement.member.class_year and placement.member.major %} &middot; {% endif %}
-            {% if placement.member.major %}{{ placement.member.major }}{% endif %}
+            {% if member.class_year == 'graduate'%}Graduate Class
+            {% elif member.class_year %}Class of {{ member.class_year }}{% endif %}
+            {% if member.class_year and member.major %} &middot; {% endif %}
+            {% if member.major %}{{ member.major }}{% endif %}
         </p>
         {% endif %}
 
-        {% if placement.member.bio %}
+        {% if member.bio %}
         <div class="text-sm text-gray-600 mt-2 line-clamp-4">
-            {{ placement.member.bio|safe }}
+            {{ member.bio|safe }}
         </div>
         {% endif %}
     </div>
@@ -67,9 +67,9 @@
 {# -------- Compact grid card (minimal, ASUC-style) -------- #}
 <div class="text-center">
     {# Member photo — rounded, square aspect #}
-    {% if placement.member.photo %}
+    {% if member.photo %}
     <div class="aspect-square overflow-hidden rounded-lg shadow-sm hover:shadow-md transition-shadow">
-        {% image placement.member.photo fill-300x300 class="w-full h-full object-cover" %}
+        {% image member.photo fill-300x300 class="w-full h-full object-cover" %}
     </div>
     {% else %}
     <div class="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
@@ -81,24 +81,25 @@
 
     <div class="mt-3 px-1">
         <h3 class="text-sm font-semibold text-gray-900 leading-tight">
-            {{ placement.member.first_name }} {{ placement.member.last_name }}
+            {{ member.first_name }} {{ member.last_name }}
         </h3>
 
         {# Role(s) — branch listings pass a `roles` list (one line each); #}
-        {# committee/class-council pages fall back to their own fields.   #}
-        {% if roles %}
         {% for role in roles %}
         <p class="text-xs text-rpi-red font-medium mt-0.5">{{ role }}</p>
         {% endfor %}
-        {% elif placement.committee_role %}
-        <p class="text-xs text-rpi-red font-medium mt-0.5">{{ placement.get_committee_role_display }}</p>
-        {% elif placement.role %}
-        <p class="text-xs text-rpi-red font-medium mt-0.5">{{ placement.role }}</p>
+        
+        {% if include_email %}
+            <div class="text-xs text-rpi-red font-medium mt-0.5">
+                <a href="mailto:{{ member.rcs_id }}@rpi.edu" class="underline text-red-700 hover:text-red-900 visited:text-purple-600">{{ member.rcs_id }}@rpi.edu</a>
+            </div>
         {% endif %}
 
         {# Class year (compact — skip major to keep cards small) #}
-        {% if placement.member.class_year %}
-        <p class="text-xs text-gray-400 mt-0.5">'{{ placement.member.class_year|stringformat:"s"|slice:"2:" }}</p>
+        {% if member.class_year == 'graduate' %}
+        <p class="text-xs text-gray-400 mt-0.5">Grad.</p>
+        {% elif member.class_year %}
+        <p class="text-xs text-gray-400 mt-0.5">'{{ member.class_year|stringformat:"s"|slice:"2:" }}</p>
         {% endif %}
     </div>
 </div>

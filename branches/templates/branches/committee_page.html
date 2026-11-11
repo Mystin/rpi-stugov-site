@@ -49,16 +49,32 @@
     </div>
     {% endif %}
 
-    {# ---- Committee Members ---- #}
-    {% if page.committee_members.all %}
-    <h2 class="text-2xl font-bold text-gray-900 mb-4">Members</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {% for placement in page.committee_members.all %}
-            {% if placement.member.is_active %}
-                {% include "includes/member_card.html" with placement=placement %}
-            {% endif %}
-        {% endfor %}
-    </div>
+    {# ---- Committee Chair ---- #}
+    {% with hierarchy=page.get_tiered_placements %}
+    {% if hierarchy %}
+        {% with tier=hierarchy.0 %}
+        {% if tier %}
+        <section class="mb-14">
+            {# Tier heading — centered, with a short accent underline #}
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 inline-block">Committee Chair</h2>
+                <div class="w-16 h-0.5 bg-rpi-red mx-auto mt-2"></div>
+            </div>
+
+            {# Presiding officer — featured card, centered #}
+            <div class="flex flex-wrap justify-center gap-8 max-w-3xl mx-auto">
+                {% for placement in tier.placements %}
+                    <div class="w-full sm:w-[420px]">
+                        {% include "includes/member_card.html" with member=placement.member roles=placement.roles featured=True %}
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+        {% endwith %}
+    {% else %}
+        <p class="text-gray-500 text-center">No committee chair listed yet.</p>
     {% endif %}
+    {% endwith %}
 </div>
 {% endblock %}

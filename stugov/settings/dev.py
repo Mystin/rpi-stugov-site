@@ -13,6 +13,9 @@ ALLOWED_HOSTS = ["*"]
 
 CSRF_TRUSTED_ORIGINS = os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "https://staging-sg.rpi.edu").split(",")
 
+# Honor HTTPS from the TLS-terminating staging proxy when building OIDC callbacks.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 try:

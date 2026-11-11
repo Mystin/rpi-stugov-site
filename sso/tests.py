@@ -671,6 +671,18 @@ class OIDCInitiationTests(TestCase):
         state = self.client.session["socialaccount_states"][parameters["state"][0]][0]
         self.assertEqual(state["next"], "/admin/")
 
+        response = self.client.get(
+            "/accounts/oidc/campus/login/?next=/admin/",
+            HTTP_HOST="staging-sg.rpi.edu",
+            HTTP_X_FORWARDED_PROTO="https",
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            parse_qs(urlsplit(response.url).query)["redirect_uri"],
+            ["https://staging-sg.rpi.edu/accounts/oidc/campus/login/callback/"],
+        )
+
 
 class WagtailLoginRoutingTests(TestCase):
     @override_settings(
